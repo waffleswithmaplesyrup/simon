@@ -16,6 +16,8 @@ export default function GamePage() {
   //* player sequence
   const [player, setPlayer] = useState([]);
 
+  const [pressed, setPressed] = useState('');
+
   const handleRestart = async () => {
     const firstMove = choices[Math.floor(Math.random() * choices.length)];
     const moves = [firstMove];
@@ -31,6 +33,23 @@ export default function GamePage() {
     // }
     
     setSequence(moves);
+
+    setTimeout(() => {
+      setPressed(firstMove);
+      setTimeout(() => {
+        setPressed(prev => prev = '');
+      }, 500)
+  
+      // setPlayer([]);
+      // setLevel(1);
+      // setPlayerTurn(true);
+    }, 1000);
+
+    // setPressed(firstMove);
+    // setTimeout(() => {
+    //   setPressed(prev => prev = '');
+    // }, 500)
+
     setPlayer([]);
     setLevel(1);
     setPlayerTurn(true);
@@ -38,6 +57,12 @@ export default function GamePage() {
 
   const handleComputerMove = () => {
     const nextMove = choices[Math.floor(Math.random() * choices.length)];
+
+    setPressed(nextMove);
+    setTimeout(() => {
+      setPressed(prev => prev = '');
+    }, 500)
+
     setSequence([...sequence, nextMove]);
     setLevel(level+1);
     setPlayerTurn(true);
@@ -47,6 +72,11 @@ export default function GamePage() {
     if (playerTurn === true) {
       setPlayer([...player, color]);
 
+      setPressed(color);
+      setTimeout(() => {
+        setPressed(prev => prev = '');
+      }, 500)
+
       let position = player.length;
 
       //* compare between color chosen by player and the color in the position in sequence array
@@ -54,18 +84,21 @@ export default function GamePage() {
         if ([...player, color].length === sequence.length) {
           setPlayerTurn(false);
           setPlayer([]);
-          handleComputerMove();
+          setTimeout(() => {
+            handleComputerMove();
+          }, 1000);
         }
       } else {
-        setLevel('game over');
-        setPlayerTurn(false);
+        setTimeout(() => {
+          setPressed('wrong');
+          setLevel('game over');
+          setPlayerTurn(false);
+        }, 500);
+        
       }
     }
 
   };
-  
-  console.log('game sequence', sequence);
-  console.log('player moves', player);
   
   return (
     <div>
@@ -73,7 +106,7 @@ export default function GamePage() {
       
       <div className="container">
         {
-          choices.map(color => <Button nextMove={handlePlayerMove} key={color} color={color} />)
+          choices.map(color => <Button nextMove={handlePlayerMove} key={color} color={color} pressed={pressed} />)
         }
       </div>
 
@@ -82,7 +115,17 @@ export default function GamePage() {
   );
 }
 
-function Button({ color, nextMove }) {
+function Button({ color, nextMove, pressed }) {
+
+  
+  useEffect(() => {
+    const play = () => {
+      new Audio(`/public/sounds/${pressed}.mp3`).play();
+    };
+    if (pressed !== '') {
+      play();
+    }
+  }, [pressed]);
 
   const handleClick = () => {
     // console.log(color);
@@ -90,7 +133,7 @@ function Button({ color, nextMove }) {
   }
 
   return (
-    <div className={`card ${color}`}
+    <div className={`card ${color} ${pressed === color ? 'pressed' : ''}`}
       onClick={handleClick}
     ></div>
   );
